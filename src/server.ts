@@ -1,62 +1,68 @@
 /* eslint-disable no-console */
-import {Server} from 'http';
+import { Server } from 'http';
 import mongoose from 'mongoose';
 import app from './app';
 import { envVars } from './app/config/env';
+import { seedSuperAdmin } from './app/utils/seedSuperAdmin';
 
-let server:Server;
+let server: Server;
 
 
-const serverStart = async()=>{
-    try{
+const serverStart = async () => {
+    try {
         await mongoose.connect(envVars.DB_URL)
-        console.log('connected to db');
-        server = app.listen(envVars.PORT,()=>{
-            console.log(`Server running on ${envVars.PORT} port`)
+        console.log('Connected to DB');
+        server = app.listen(envVars.PORT, () => {
+            console.log(`Server running on ${envVars.PORT}`)
         })
     }
-    catch(error){
-      console.log(error);
+    catch (error) {
+        console.log(error);
     }
 
 }
-serverStart();
+
+(async () => {
+    await serverStart();
+    await seedSuperAdmin();
+})()
+
 
 // handle server error
-process.on('unhandledRejection',(err)=>{
+process.on('unhandledRejection', (err) => {
     console.log('Unhandled Rejection detected...Server shutting down.', err);
-    if(server){
-        server.close(()=>{
+    if (server) {
+        server.close(() => {
             process.exit(1)
         });
     }
     process.exit(1)
 })
 
-process.on('uncaughtException',(err)=>{
+process.on('uncaughtException', (err) => {
     console.log('Unhandled uncaughtException detected...Server shutting down.', err);
-    if(server){
-        server.close(()=>{
+    if (server) {
+        server.close(() => {
             process.exit(1)
         });
     }
     process.exit(1)
 })
 
-process.on('SIGTERM',()=>{
+process.on('SIGTERM', () => {
     console.log('Unhandled SIGTERM detected...Server shutting down.');
-    if(server){
-        server.close(()=>{
+    if (server) {
+        server.close(() => {
             process.exit(1)
         });
     }
     process.exit(1)
 })
 
-process.on('SIGINT',()=>{
+process.on('SIGINT', () => {
     console.log('Unhandled SIGINT detected...Server shutting down.');
-    if(server){
-        server.close(()=>{
+    if (server) {
+        server.close(() => {
             process.exit(1)
         });
     }
