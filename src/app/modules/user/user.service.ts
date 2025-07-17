@@ -8,10 +8,10 @@ import { envVars } from "../../config/env";
 
 const createUser = async (payload: Partial<IUser>) => {
     const { email, password, ...rest } = payload;
-    const isUserExits = await User.findOne({ email })
-    if (isUserExits) {
-        throw new AppError(httpStatus.BAD_REQUEST, "User all ready exits.")
-    }
+    // const isUserExits = await User.findOne({ email })
+    // if (isUserExits) {
+    //     throw new AppError(httpStatus.BAD_REQUEST, "User all ready exits.")
+    // }
     const hashedPassword = await bcrypt.hash(password as string, 10)
     const authProvider: IAuthProvider = {
         provider: "credentials",
