@@ -108,13 +108,13 @@ const logout = catchAsync(async (req: Request, res: Response, next: NextFunction
     })
 
 })
-const resetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const changePassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
     const oldPassword = req.body.oldPassword;
     const newPassword = req.body.newPassword;
     const decodedToken = req.user;
 
-    await AuthServices.resetPassword(oldPassword, newPassword, decodedToken as JwtPayload)
+    await AuthServices.changePassword(oldPassword, newPassword, decodedToken as JwtPayload)
 
     sendRespone(res, {
         statusCode: httpStatus.OK,
@@ -124,6 +124,56 @@ const resetPassword = catchAsync(async (req: Request, res: Response, next: NextF
     })
 
 })
+
+
+const setPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    const {password}= req.body;
+    const decodedToken = req.user as JwtPayload;
+
+    await AuthServices.setPassword(decodedToken.userId , password)
+
+    sendRespone(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Password Changed Successfully",
+        data: null,
+    })
+
+})
+
+const forgetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    const {email}= req.body;
+
+    await AuthServices.forgetPassword(email)
+
+    sendRespone(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Email Successfully",
+        data: null,
+    })
+
+})
+
+const resetPassword = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+
+    const decodedToken = req.user
+   
+
+    await AuthServices.resetPassword( req.body, decodedToken as JwtPayload)
+
+    sendRespone(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Password Changed Successfully",
+        data: null,
+    })
+
+})
+
+
 const googleCallbackController = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     let redirectTo = req.query.state ? req.query.state as string : "";
     if (redirectTo.startsWith("/")) {
@@ -150,5 +200,8 @@ export const AuthController = {
     getNewAccessToken,
     logout,
     resetPassword,
+    setPassword,
+    forgetPassword,
+    changePassword,
     googleCallbackController
 } 
