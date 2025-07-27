@@ -6,12 +6,26 @@ import { handleDuplicateError } from "../errorHelper/handleDuplicateError";
 import { handleCastError } from "../errorHelper/handleCastError";
 import { handleZodError } from "../errorHelper/handleZodError";
 import { handleValidationError } from "../errorHelper/handleValidationError";
+import { deleteImageFromCloudinary } from "../config/cloudinary.config";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-export const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const globalErrorHandler =async (err: any, req: Request, res: Response, next: NextFunction) => {
     if(envVars.NODE_ENV ==='development'){
+        // eslint-disable-next-line no-console
         console.log(err)
     }
+
+    if(req.file){
+        await deleteImageFromCloudinary(req.file.path)
+    }
+
+   if(req.files && Array.isArray(req.files)&& req.files.length > 0){
+    const imageUrl = (req.files as Express.Multer.File[]).map(file => file.path)
+    await Promise.all(imageUrl.map(url => deleteImageFromCloudinary(url)))
+   }
+
+
+
     let statusCode = 500
     let message = `Something went wrong!!`
 
@@ -27,7 +41,7 @@ export const globalErrorHandler = (err: any, req: Request, res: Response, next: 
     }
     // CastError
     else if (err.name == "CastError") {
-        const simplifiedError = handleCastError()
+        const simplifiedError = handleCastError(err)
         statusCode = simplifiedError.statusCode;
         message = simplifiedError.message;
     }
