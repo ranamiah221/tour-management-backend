@@ -9,10 +9,15 @@ import { sendRespone } from "../../utils/sendResponse";
 import { verifyToken } from "../../utils/jwt";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
+import { IUser } from "./user.interface";
 
 
 const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const user = await userServices.createUser(req.body)
+    const payload:IUser={
+        ...req.body,
+        picture: req.file?.path
+    }
+    const user = await userServices.createUser(payload)
 
     sendRespone(res,{
         statusCode:httpStatus.CREATED,
@@ -28,7 +33,11 @@ const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunc
     // const token = req.headers.authorization;
     // const verifiedToken = verifyToken(token as string,envVars.JWT_ACCESS_SECRET) as JwtPayload
     const verifiedToken= req.user;
-    const payload = req.body;
+     const payload:IUser={
+        ...req.body,
+        picture: req.file?.path
+    }
+    // const payload = req.body;
     const user = await userServices.updateUser(userId,payload,verifiedToken as JwtPayload)
 
     sendRespone(res,{
@@ -55,9 +64,24 @@ const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFun
     
 })
 
+const getMe = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload
+    const result = await userServices.getMe(decodedToken.userId)
+
+    sendRespone(res,{
+        statusCode: httpStatus.OK,
+        success:true,
+        message: "Your Profile Retrive Successfully",
+        data:result.data,
+       
+    })
+    
+})
+
 
 export const UserControllers = {
     createUser,
     getAllUsers,
-    updateUser
+    updateUser,
+    getMe
 }
