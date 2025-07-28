@@ -2,6 +2,10 @@ node_modules
 .env
 .vercel
 <<<<<<< HEAD
+<<<<<<< HEAD
 .env.*
 =======
 >>>>>>> 85dbf1b (complete part 8)
+=======
+.env.*
+>>>>>>> 4cd9279 (added part-8)
