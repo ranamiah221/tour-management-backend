@@ -4,8 +4,7 @@ import { User } from "./user.model";
 import httpStatus from 'http-status-codes';
 import bcrypt from "bcryptjs";
 import { JwtPayload } from "jsonwebtoken";
-import { envVars } from "../../config/env";
-import { deleteImageFromCloudinary } from "../../config/cloudinary.config";
+
 
 const createUser = async (payload: Partial<IUser>) => {
     const { email, password, ...rest } = payload;
@@ -28,31 +27,49 @@ const createUser = async (payload: Partial<IUser>) => {
 }
 
 const updateUser = async (userId: string, payload: Partial<IUser>, decodedToken: JwtPayload) => {
-    const ifUserExits = await User.findById(userId)
-    if (!ifUserExits) {
-        throw new AppError(httpStatus.NOT_FOUND, "User not found.")
+    if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
+        if (userId !== decodedToken.userId) {
+            throw new AppError(401, "You are not authorized")
+        }
     }
-   
+
+    const ifUserExist = await User.findById(userId);
+
+    if (!ifUserExist) {
+        throw new AppError(httpStatus.NOT_FOUND, "User Not Found")
+    }
+
+    if (decodedToken.role === Role.ADMIN && ifUserExist.role === Role.SUPER_ADMIN) {
+        throw new AppError(401, "You are not authorized")
+    }
+
+    /**
+     * email - can not update
+     * name, phone, password address
+     * password - re hashing
+     *  only admin superadmin - role, isDeleted...
+     * 
+     * promoting to superadmin - superadmin
+     */
+
     if (payload.role) {
         if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-            throw new AppError(httpStatus.FORBIDDEN, "You are not authorized.")
+            throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
         }
-        if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
-            throw new AppError(httpStatus.FORBIDDEN, "You are not authorized.")
-        }
+
+        // if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
+        //     throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
+        // }
     }
+
     if (payload.isActive || payload.isDeleted || payload.isVerified) {
         if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-            throw new AppError(httpStatus.FORBIDDEN, "You are not authorized.")
+            throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
         }
     }
-    if (payload.password) {
-        payload.password = await bcrypt.hash(payload.password, Number(envVars.BCRYPT_SALT_ROUND))
-    }
+
     const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, { new: true, runValidators: true })
-    if(payload.picture && ifUserExits.picture){
-        await deleteImageFromCloudinary(ifUserExits.picture)
-    }
+
     return newUpdatedUser
 }
 

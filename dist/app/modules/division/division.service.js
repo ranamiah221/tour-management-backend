@@ -1,0 +1,89 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DivisionService = void 0;
+const cloudinary_config_1 = require("../../config/cloudinary.config");
+const AppError_1 = __importDefault(require("../../errorHelper/AppError"));
+const division_model_1 = require("./division.model");
+const http_status_codes_1 = __importDefault(require("http-status-codes"));
+const createDivision = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const existingDuplicate = yield division_model_1.Division.findOne({ name: payload.name });
+    if (existingDuplicate) {
+        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "A division with this name already exists.");
+    }
+    // work done by pre save hook inside the model
+    // const baseSlug = payload.name?.toLowerCase().split(" ").join("-")
+    // let slug = `${baseSlug}-division`;
+    // let counter = 0
+    // while (await Division.exists({ slug })) {
+    //     slug = `${slug}-${counter++}`
+    // }
+    // payload.slug = slug;
+    const division = yield division_model_1.Division.create(payload);
+    return division;
+});
+const getAllDvisions = () => __awaiter(void 0, void 0, void 0, function* () {
+    const division = yield division_model_1.Division.find();
+    const divisionCount = yield division_model_1.Division.countDocuments();
+    return {
+        data: division,
+        meta: {
+            total: divisionCount
+        }
+    };
+});
+const getSingleDivision = (slug) => __awaiter(void 0, void 0, void 0, function* () {
+    const division = yield division_model_1.Division.findOne({ slug });
+    return {
+        data: division,
+    };
+});
+const updateDivision = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const existDivision = yield division_model_1.Division.findById(id);
+    if (!existDivision) {
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Division not found.");
+    }
+    const duplicateDivision = yield division_model_1.Division.findOne({
+        name: payload.name,
+        _id: { $ne: id },
+    });
+    if (duplicateDivision) {
+        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "A division with this name already exists.");
+    }
+    // if (payload.name) {
+    //     const baseSlug = payload.name?.toLowerCase().split(" ").join("-")
+    //     let slug = `${baseSlug}-division`;
+    //     let counter = 0
+    //     while (await Division.exists({ slug })) {
+    //         slug = `${slug}-${counter++}`
+    //     }
+    //     payload.slug = slug;
+    // }
+    const updatedDivision = yield division_model_1.Division.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
+    if (payload.thumbnail && existDivision.thumbnail) {
+        yield (0, cloudinary_config_1.deleteImageFromCloudinary)(existDivision.thumbnail);
+    }
+    return updatedDivision;
+});
+const deleteDivision = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    yield division_model_1.Division.findByIdAndDelete(id);
+    return null;
+});
+exports.DivisionService = {
+    createDivision,
+    getAllDvisions,
+    getSingleDivision,
+    updateDivision,
+    deleteDivision
+};
