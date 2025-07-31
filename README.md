@@ -97,7 +97,7 @@ npm start</code></pre>
   </table>
 
   <h2>🧪 Testing</h2>
-  <p>You can test the API using <a href="https://www.postman.com/" target="_blank">Postman</a> or <a href="https://insomnia.rest/" target="_blank">Insomnia</a>. Use the Bearer token in headers to access protected routes:</p>
+  <p>You can test the API using <a href="https://www.postman.com/" target="_blank">Postman</a> Use the Bearer token in headers to access protected routes:</p>
   <pre><code>Authorization: Bearer &lt;your_jwt_token&gt;</code></pre>
 
   <h2>🧑‍💻 Author</h2>
