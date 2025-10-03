@@ -15,6 +15,5 @@ export interface IPayment{
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     paymentGatewayData?:any;
     invoiceUrl:string;
-    status:PAYMENT_STATUS,
-    createdAt?: Date
+    status:PAYMENT_STATUS
 }
