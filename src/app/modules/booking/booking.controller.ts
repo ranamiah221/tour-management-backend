@@ -45,7 +45,7 @@ const getSingleBooking = catchAsync(async (req: Request, res: Response) => {
     });
 });
 const updateBookingStatus = catchAsync(async (req: Request, res: Response) => {
-
+    const booking = await BookingService.updateBookingStatus();
     const booking = await BookingService.gupdateBookingStatus();
     sendRespone(res, {
         statusCode: 201,
